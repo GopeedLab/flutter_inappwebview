@@ -22,6 +22,22 @@ public class MyCookieManager: ChannelDelegate {
     
     public override func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         let arguments = call.arguments as? NSDictionary
+        if call.method == "gopeed.removeProfile" {
+            GopeedProfiles.remove(arguments: arguments, result: result)
+            return
+        }
+        if call.method == "gopeed.prepareProfile" {
+            GopeedProfiles.prepare(arguments: arguments, result: result)
+            return
+        }
+        let profileID = arguments?["gopeedProfileId"] as? String ?? ""
+        let selectedStore = GopeedProfiles.store(profileID)
+        if !profileID.isEmpty && selectedStore == nil {
+            result(FlutterError(code: "UNAVAILABLE", message: "WebView profile is not initialized", details: nil))
+            return
+        }
+        let cookieStore = (selectedStore ?? WKWebsiteDataStore.default()).httpCookieStore
+
         switch call.method {
             case "setCookie":
                 let url = arguments!["url"] as! String
@@ -50,30 +66,30 @@ public class MyCookieManager: ChannelDelegate {
                                           isSecure: isSecure,
                                           isHttpOnly: isHttpOnly,
                                           sameSite: sameSite,
-                                          result: result)
+                                          result: result, cookieStore: cookieStore)
                 break
             case "getCookies":
                 let url = arguments!["url"] as! String
-                MyCookieManager.getCookies(url: url, result: result)
+                MyCookieManager.getCookies(url: url, result: result, cookieStore: cookieStore)
                 break
             case "getAllCookies":
-                MyCookieManager.getAllCookies(result: result)
+                MyCookieManager.getAllCookies(result: result, cookieStore: cookieStore)
                 break
             case "deleteCookie":
                 let url = arguments!["url"] as! String
                 let name = arguments!["name"] as! String
                 let path = arguments!["path"] as! String
                 let domain = arguments!["domain"] as? String
-                MyCookieManager.deleteCookie(url: url, name: name, path: path, domain: domain, result: result)
+                MyCookieManager.deleteCookie(url: url, name: name, path: path, domain: domain, result: result, cookieStore: cookieStore)
                 break
             case "deleteCookies":
                 let url = arguments!["url"] as! String
                 let path = arguments!["path"] as! String
                 let domain = arguments!["domain"] as? String
-                MyCookieManager.deleteCookies(url: url, path: path, domain: domain, result: result)
+                MyCookieManager.deleteCookies(url: url, path: path, domain: domain, result: result, cookieStore: cookieStore)
                 break
             case "deleteAllCookies":
-                MyCookieManager.deleteAllCookies(result: result)
+                MyCookieManager.deleteAllCookies(result: result, cookieStore: cookieStore)
                 break
             default:
                 result(FlutterMethodNotImplemented)
@@ -91,7 +107,7 @@ public class MyCookieManager: ChannelDelegate {
                           isSecure: Bool?,
                           isHttpOnly: Bool?,
                           sameSite: String?,
-                          result: @escaping FlutterResult) {
+                          result: @escaping FlutterResult, cookieStore: WKHTTPCookieStore = WKWebsiteDataStore.default().httpCookieStore) {
         var properties: [HTTPCookiePropertyKey: Any] = [:]
         properties[.originURL] = url
         properties[.name] = name
@@ -134,7 +150,7 @@ public class MyCookieManager: ChannelDelegate {
         
         
         if let cookie = HTTPCookie(properties: properties) {
-            MyCookieManager.httpCookieStore.setCookie(cookie, completionHandler: {() in
+            cookieStore.setCookie(cookie, completionHandler: {() in
                 result(true)
             })
         } else {
@@ -142,11 +158,11 @@ public class MyCookieManager: ChannelDelegate {
         }
     }
     
-    public static func getCookies(url: String, result: @escaping FlutterResult) {
+    public static func getCookies(url: String, result: @escaping FlutterResult, cookieStore: WKHTTPCookieStore = WKWebsiteDataStore.default().httpCookieStore) {
         var cookieList: [[String: Any?]] = []
         
         if let urlHost = URL(string: url)?.host {
-            MyCookieManager.httpCookieStore.getAllCookies { (cookies) in
+            cookieStore.getAllCookies { (cookies) in
                 for cookie in cookies {
                     if urlHost.hasSuffix(cookie.domain) || ".\(urlHost)".hasSuffix(cookie.domain) {
                         var sameSite: String? = nil
@@ -185,10 +201,10 @@ public class MyCookieManager: ChannelDelegate {
         result(cookieList)
     }
     
-    public static func getAllCookies(result: @escaping FlutterResult) {
+    public static func getAllCookies(result: @escaping FlutterResult, cookieStore: WKHTTPCookieStore = WKWebsiteDataStore.default().httpCookieStore) {
         var cookieList: [[String: Any?]] = []
         
-        MyCookieManager.httpCookieStore.getAllCookies { (cookies) in
+        cookieStore.getAllCookies { (cookies) in
             for cookie in cookies {
                 var sameSite: String? = nil
                 if #available(iOS 13.0, *) {
@@ -219,9 +235,9 @@ public class MyCookieManager: ChannelDelegate {
         }
     }
     
-    public static func deleteCookie(url: String, name: String, path: String, domain: String?, result: @escaping FlutterResult) {
+    public static func deleteCookie(url: String, name: String, path: String, domain: String?, result: @escaping FlutterResult, cookieStore: WKHTTPCookieStore = WKWebsiteDataStore.default().httpCookieStore) {
         var domain = domain
-        MyCookieManager.httpCookieStore.getAllCookies { (cookies) in
+        cookieStore.getAllCookies { (cookies) in
             for cookie in cookies {
                 var originURL = url
                 if cookie.properties![.originURL] is String {
@@ -238,7 +254,7 @@ public class MyCookieManager: ChannelDelegate {
                     }
                 }
                 if let domain = domain, cookie.domain == domain, cookie.name == name, cookie.path == path {
-                    MyCookieManager.httpCookieStore.delete(cookie, completionHandler: {
+                    cookieStore.delete(cookie, completionHandler: {
                         result(true)
                     })
                     return
@@ -248,10 +264,10 @@ public class MyCookieManager: ChannelDelegate {
         }
     }
     
-    public static func deleteCookies(url: String, path: String, domain: String?, result: @escaping FlutterResult) {
+    public static func deleteCookies(url: String, path: String, domain: String?, result: @escaping FlutterResult, cookieStore: WKHTTPCookieStore = WKWebsiteDataStore.default().httpCookieStore) {
         var domain = domain
         let dispatchGroup = DispatchGroup()
-        MyCookieManager.httpCookieStore.getAllCookies { (cookies) in
+        cookieStore.getAllCookies { (cookies) in
             for cookie in cookies {
                 var originURL = url
                 if cookie.properties![.originURL] is String {
@@ -269,7 +285,7 @@ public class MyCookieManager: ChannelDelegate {
                 }
                 if let domain = domain, cookie.domain == domain, cookie.path == path {
                     dispatchGroup.enter()
-                    MyCookieManager.httpCookieStore.delete(cookie) {
+                    cookieStore.delete(cookie) {
                         dispatchGroup.leave()
                     }
                 }
@@ -280,12 +296,15 @@ public class MyCookieManager: ChannelDelegate {
         }
     }
     
-    public static func deleteAllCookies(result: @escaping FlutterResult) {
-        let websiteDataTypes = NSSet(array: [WKWebsiteDataTypeCookies])
-        let date = NSDate(timeIntervalSince1970: 0)
-        WKWebsiteDataStore.default().removeData(ofTypes: websiteDataTypes as! Set<String>, modifiedSince: date as Date, completionHandler:{
-            result(true)
-        })
+    public static func deleteAllCookies(result: @escaping FlutterResult, cookieStore: WKHTTPCookieStore = WKWebsiteDataStore.default().httpCookieStore) {
+        cookieStore.getAllCookies { cookies in
+            let group = DispatchGroup()
+            for cookie in cookies {
+                group.enter()
+                cookieStore.delete(cookie) { group.leave() }
+            }
+            group.notify(queue: .main) { result(true) }
+        }
     }
     
     public override func dispose() {

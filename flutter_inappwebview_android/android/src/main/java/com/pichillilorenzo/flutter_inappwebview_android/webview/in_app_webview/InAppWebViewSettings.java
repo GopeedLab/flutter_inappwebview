@@ -26,6 +26,7 @@ import java.util.Set;
 
 public class InAppWebViewSettings implements ISettings<InAppWebViewInterface> {
 
+  public String gopeedProfileId = "";
   public static final String LOG_TAG = "InAppWebViewSettings";
 
   public Boolean useShouldOverrideUrlLoading = false;
@@ -156,6 +157,9 @@ public class InAppWebViewSettings implements ISettings<InAppWebViewInterface> {
           break;
         case "clearCache":
           clearCache = (Boolean) value;
+          break;
+        case "gopeedProfileId":
+          gopeedProfileId = (String) value;
           break;
         case "userAgent":
           userAgent = (String) value;

@@ -259,7 +259,7 @@ public class InAppWebView: WKWebView, WKUIDelegate,
             if settings.incognito {
                 configuration.websiteDataStore = WKWebsiteDataStore.nonPersistent()
             } else if settings.cacheEnabled {
-                configuration.websiteDataStore = WKWebsiteDataStore.default()
+                configuration.websiteDataStore = GopeedProfiles.store(settings.gopeedProfileId) ?? WKWebsiteDataStore.default()
             }
             if !settings.applicationNameForUserAgent.isEmpty {
                 if let applicationNameForUserAgent = configuration.applicationNameForUserAgent {
@@ -550,7 +550,7 @@ public class InAppWebView: WKWebView, WKUIDelegate,
         if (newSettingsMap["incognito"] != nil && settings?.incognito != newSettings.incognito && newSettings.incognito) {
             configuration.websiteDataStore = WKWebsiteDataStore.nonPersistent()
         } else if (newSettingsMap["cacheEnabled"] != nil && settings?.cacheEnabled != newSettings.cacheEnabled && newSettings.cacheEnabled) {
-            configuration.websiteDataStore = WKWebsiteDataStore.default()
+            configuration.websiteDataStore = GopeedProfiles.store(settings?.gopeedProfileId ?? "") ?? WKWebsiteDataStore.default()
         }
         
         if #available(macOS 10.13, *) {
@@ -2603,6 +2603,12 @@ if(window.\(JAVASCRIPT_BRIDGE_NAME)[\(_callHandlerID)] != null) {
     }
     
     public func dispose() {
+        // An edited web page can remain in AppKit's responder chain even after
+        // its headless wrapper is removed. Resign it while still in the window.
+        if let responder = window?.firstResponder as? NSView,
+           responder === self || responder.isDescendant(of: self) {
+            window?.makeFirstResponder(nil)
+        }
         channelDelegate?.dispose()
         channelDelegate = nil
         runWindowBeforeCreatedCallbacks()
