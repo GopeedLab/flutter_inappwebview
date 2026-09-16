@@ -1,6 +1,7 @@
 import 'package:flutter_inappwebview_platform_interface/flutter_inappwebview_platform_interface.dart';
 
 import 'cookie_manager.dart';
+import 'webview_profile.dart';
 import 'http_auth_credentials_database.dart';
 import 'find_interaction/main.dart';
 import 'in_app_browser/in_app_browser.dart';
@@ -12,6 +13,10 @@ import 'web_authentication_session/main.dart';
 
 /// Implementation of [InAppWebViewPlatform] using the WebKit API.
 class MacOSInAppWebViewPlatform extends InAppWebViewPlatform {
+  @override
+  MacOSWebViewProfile createPlatformWebViewProfile(String id) =>
+      MacOSWebViewProfile(id);
+
   /// Registers this class as the default instance of [InAppWebViewPlatform].
   static void registerWith() {
     InAppWebViewPlatform.instance = MacOSInAppWebViewPlatform();
@@ -215,7 +220,8 @@ class MacOSInAppWebViewPlatform extends InAppWebViewPlatform {
   /// Look at using [WebStorageManager] in `flutter_inappwebview` instead.
   @override
   MacOSWebStorageManager createPlatformWebStorageManager(
-      PlatformWebStorageManagerCreationParams params) {
+    PlatformWebStorageManagerCreationParams params,
+  ) {
     return MacOSWebStorageManager(params);
   }
 
@@ -225,7 +231,8 @@ class MacOSInAppWebViewPlatform extends InAppWebViewPlatform {
   /// Look at using [WebAuthenticationSession] in `flutter_inappwebview` instead.
   @override
   MacOSWebAuthenticationSession createPlatformWebAuthenticationSession(
-      PlatformWebAuthenticationSessionCreationParams params) {
+    PlatformWebAuthenticationSessionCreationParams params,
+  ) {
     return MacOSWebAuthenticationSession(params);
   }
 

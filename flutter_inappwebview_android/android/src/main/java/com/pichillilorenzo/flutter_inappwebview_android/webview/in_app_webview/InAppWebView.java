@@ -193,9 +193,9 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
                       @Nullable Map<String, Object> contextMenu, View containerView,
                       List<UserScript> userScripts) {
     super(context, containerView, customSettings.useHybridComposition);
-    if (!customSettings.gopeedProfileId.isEmpty()) {
-      WebViewCompat.setProfile(this, customSettings.gopeedProfileId);
-      com.pichillilorenzo.flutter_inappwebview_android.GopeedProfiles.viewCreated(this, customSettings.gopeedProfileId);
+    if (!customSettings.profileId.isEmpty()) {
+      WebViewCompat.setProfile(this, customSettings.profileId);
+      com.pichillilorenzo.flutter_inappwebview_android.WebViewProfiles.viewCreated(this, customSettings.profileId);
     }
     this.plugin = plugin;
     this.id = id;
@@ -241,8 +241,8 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
   }
 
   @SuppressLint("RestrictedApi")
-  private CookieManager gopeedCookieManager() {
-    if (!customSettings.gopeedProfileId.isEmpty()) {
+  private CookieManager profileCookieManager() {
+    if (!customSettings.profileId.isEmpty()) {
       return WebViewCompat.getProfile(this).getCookieManager();
     }
     return CookieManager.getInstance();
@@ -318,10 +318,10 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
     if (customSettings.clearCache)
       clearAllCache();
     else if (customSettings.clearSessionCache)
-      gopeedCookieManager().removeSessionCookie();
+      profileCookieManager().removeSessionCookie();
 
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
-      gopeedCookieManager().setAcceptThirdPartyCookies(this, customSettings.thirdPartyCookiesEnabled);
+      profileCookieManager().setAcceptThirdPartyCookies(this, customSettings.thirdPartyCookiesEnabled);
 
     settings.setLoadWithOverviewMode(customSettings.loadWithOverviewMode);
     settings.setUseWideViewPort(customSettings.useWideViewPort);
@@ -597,9 +597,9 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
     WebSettings settings = getSettings();
     if (enabled) {
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-        gopeedCookieManager().removeAllCookies(null);
+        profileCookieManager().removeAllCookies(null);
       } else {
-        gopeedCookieManager().removeAllCookie();
+        profileCookieManager().removeAllCookie();
       }
 
       // Disable caching
@@ -686,14 +686,14 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
   @Deprecated
   private void clearCookies() {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-      gopeedCookieManager().removeAllCookies(new ValueCallback<Boolean>() {
+      profileCookieManager().removeAllCookies(new ValueCallback<Boolean>() {
         @Override
         public void onReceiveValue(Boolean aBoolean) {
 
         }
       });
     } else {
-      gopeedCookieManager().removeAllCookie();
+      profileCookieManager().removeAllCookie();
     }
   }
 
@@ -856,10 +856,10 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
     if (newSettingsMap.get("clearCache") != null && newCustomSettings.clearCache)
       clearAllCache();
     else if (newSettingsMap.get("clearSessionCache") != null && newCustomSettings.clearSessionCache)
-      gopeedCookieManager().removeSessionCookie();
+      profileCookieManager().removeSessionCookie();
 
     if (newSettingsMap.get("thirdPartyCookiesEnabled") != null && customSettings.thirdPartyCookiesEnabled != newCustomSettings.thirdPartyCookiesEnabled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
-      gopeedCookieManager().setAcceptThirdPartyCookies(this, newCustomSettings.thirdPartyCookiesEnabled);
+      profileCookieManager().setAcceptThirdPartyCookies(this, newCustomSettings.thirdPartyCookiesEnabled);
 
     if (newSettingsMap.get("useWideViewPort") != null && customSettings.useWideViewPort != newCustomSettings.useWideViewPort)
       settings.setUseWideViewPort(newCustomSettings.useWideViewPort);
@@ -2108,6 +2108,6 @@ final public class InAppWebView extends InputAwareWebView implements InAppWebVie
   @Override
   public void destroy() {
     super.destroy();
-    com.pichillilorenzo.flutter_inappwebview_android.GopeedProfiles.viewDestroyed(this);
+    com.pichillilorenzo.flutter_inappwebview_android.WebViewProfiles.viewDestroyed(this);
   }
 }

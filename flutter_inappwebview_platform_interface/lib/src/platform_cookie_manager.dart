@@ -17,7 +17,11 @@ import 'webview_environment/platform_webview_environment.dart';
 @immutable
 class PlatformCookieManagerCreationParams {
   /// Used by the platform implementation to create a new [PlatformCookieManager].
-  const PlatformCookieManagerCreationParams({this.webViewEnvironment});
+  const PlatformCookieManagerCreationParams(
+      {this.webViewEnvironment, this.profileId});
+
+  /// Optional UUID of a prepared profile. Null selects the default cookie store.
+  final String? profileId;
 
   ///Used to create the [PlatformCookieManager] using the specified environment.
   ///
@@ -43,6 +47,8 @@ class PlatformCookieManagerCreationParams {
 ///- Windows
 ///{@endtemplate}
 abstract class PlatformCookieManager extends PlatformInterface {
+  bool get supportsProfiles => false;
+
   /// Creates a new [PlatformCookieManager]
   factory PlatformCookieManager(PlatformCookieManagerCreationParams params) {
     assert(
@@ -55,6 +61,10 @@ abstract class PlatformCookieManager extends PlatformInterface {
     final PlatformCookieManager cookieManager =
         InAppWebViewPlatform.instance!.createPlatformCookieManager(params);
     PlatformInterface.verify(cookieManager, _token);
+    if (params.profileId != null && !cookieManager.supportsProfiles) {
+      throw UnsupportedError(
+          'Profile cookies are not supported on this platform');
+    }
     return cookieManager;
   }
 

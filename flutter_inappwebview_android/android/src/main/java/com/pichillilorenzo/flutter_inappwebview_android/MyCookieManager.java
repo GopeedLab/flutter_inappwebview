@@ -49,15 +49,15 @@ public class MyCookieManager extends ChannelDelegateImpl {
 
   @Override
   public void onMethodCall(@NonNull MethodCall call, @NonNull MethodChannel.Result result) {
-    if (call.method.equals("gopeed.removeProfile")) {
-      GopeedProfiles.remove(call, result);
+    if (call.method.equals("removeProfile")) {
+      WebViewProfiles.remove(call, result);
       return;
     }
-    if (call.method.equals("gopeed.prepareProfile")) {
-      GopeedProfiles.prepare(call, result);
+    if (call.method.equals("prepareProfile")) {
+      WebViewProfiles.prepare(call, result);
       return;
     }
-    String profileID = call.argument("gopeedProfileId");
+    String profileID = call.argument("profileId");
     if (profileID != null && !profileID.isEmpty()) {
       if (!androidx.webkit.WebViewFeature.isFeatureSupported(androidx.webkit.WebViewFeature.MULTI_PROFILE) ||
           androidx.webkit.ProfileStore.getInstance().getProfile(profileID) == null) {

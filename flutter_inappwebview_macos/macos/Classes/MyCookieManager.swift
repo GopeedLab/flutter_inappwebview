@@ -22,16 +22,16 @@ public class MyCookieManager: ChannelDelegate {
     
     public override func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
         let arguments = call.arguments as? NSDictionary
-        if call.method == "gopeed.removeProfile" {
-            GopeedProfiles.remove(arguments: arguments, result: result)
+        if call.method == "removeProfile" {
+            WebViewProfiles.remove(arguments: arguments, result: result)
             return
         }
-        if call.method == "gopeed.prepareProfile" {
-            GopeedProfiles.prepare(arguments: arguments, result: result)
+        if call.method == "prepareProfile" {
+            WebViewProfiles.prepare(arguments: arguments, result: result)
             return
         }
-        let profileID = arguments?["gopeedProfileId"] as? String ?? ""
-        let selectedStore = GopeedProfiles.store(profileID)
+        let profileID = arguments?["profileId"] as? String ?? ""
+        let selectedStore = WebViewProfiles.store(profileID)
         if !profileID.isEmpty && selectedStore == nil {
             result(FlutterError(code: "UNAVAILABLE", message: "WebView profile is not initialized", details: nil))
             return

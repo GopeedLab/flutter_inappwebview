@@ -1,3 +1,8 @@
+## Unreleased (profile feature)
+
+- Add public persistent-profile lifecycle, initialization settings, and scoped cookie APIs.
+- Support optional proxy configuration through the profile API; see `doc/webview_profiles.md` in the repository for platform limitations.
+
 ## 1.3.0+1
 
 - Fixed `X509Certificate.toMap` method

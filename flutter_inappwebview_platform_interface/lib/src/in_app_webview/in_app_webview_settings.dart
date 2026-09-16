@@ -52,6 +52,12 @@ List<ContentBlocker> _deserializeContentBlockers(
 ///This class represents all the WebView settings available.
 @ExchangeableObject(copyMethod: true)
 class InAppWebViewSettings_ {
+  /// Persistent profile UUID. Initialize it with WebViewProfile.prepare before
+  /// constructing a WebView. Null uses the existing default profile.
+  /// Supported on Android with MULTI_PROFILE, iOS 17+, and macOS 14+.
+  /// Must be set at creation and cannot be combined with incognito mode.
+  String? profileId;
+
   ///Set to `true` to be able to listen at the [PlatformWebViewCreationParams.shouldOverrideUrlLoading] event.
   ///
   ///If the [PlatformWebViewCreationParams.shouldOverrideUrlLoading] event is implemented and this value is `null`,
@@ -308,9 +314,9 @@ because there isn't any way to make the website data store non-persistent for th
     IOSPlatform(),
     MacOSPlatform(),
     WindowsPlatform(
-      apiName: "ICoreWebView2ControllerOptions.put_IsInPrivateModeEnabled",
-      apiUrl: "https://learn.microsoft.com/en-us/microsoft-edge/webview2/reference/win32/icorewebview2controlleroptions?view=webview2-1.0.2792.45#put_isinprivatemodeenabled"
-    )
+        apiName: "ICoreWebView2ControllerOptions.put_IsInPrivateModeEnabled",
+        apiUrl:
+            "https://learn.microsoft.com/en-us/microsoft-edge/webview2/reference/win32/icorewebview2controlleroptions?view=webview2-1.0.2792.45#put_isinprivatemodeenabled")
   ])
   bool? incognito;
 
@@ -1658,6 +1664,7 @@ as it can cause framerate drops on animations in Android 9 and lower (see [Hybri
 
   @ExchangeableObjectConstructor()
   InAppWebViewSettings_({
+    this.profileId,
     this.useShouldOverrideUrlLoading,
     this.useOnLoadResource,
     this.useOnDownloadStart,

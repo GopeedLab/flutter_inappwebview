@@ -1,39 +1,49 @@
-// Internal Gopeed host bridge. No extension-facing API.
+// Native persistent profile lifecycle.
 import Foundation
 import WebKit
 import Network
 import FlutterMacOS
 
-final class GopeedProfiles {
+final class WebViewProfiles {
     private static var proxyURLs: [String: String] = [:]
     private static var stores: [String: WKWebsiteDataStore] = [:]
     static func store(_ identifier: String) -> WKWebsiteDataStore? { stores[identifier] }
 
     static func prepare(arguments: NSDictionary?, result: @escaping FlutterResult) {
-        guard #available(macOS 14.0, iOS 17.0, *),
-              let identifier = arguments?["gopeedProfileId"] as? String,
-              let uuid = UUID(uuidString: identifier),
-              let proxyURL = arguments?["proxyUrl"] as? String,
-              let url = URL(string: proxyURL), url.scheme == "socks5",
-              let host = url.host, host == "127.0.0.1",
-              let port = url.port, port > 0 && port <= 65535 else {
-            result(FlutterError(code: "UNAVAILABLE", message: "Isolated WebView profiles and proxy require macOS 14 / iOS 17 or newer and valid host configuration", details: nil))
+        guard #available(macOS 14.0, iOS 17.0, *) else {
+            result(FlutterError(code: "UNAVAILABLE", message: "Persistent profiles require macOS 14 / iOS 17 or newer", details: nil))
             return
         }
+        guard let identifier = arguments?["profileId"] as? String,
+              let uuid = UUID(uuidString: identifier) else {
+            result(FlutterError(code: "INVALID_REQUEST", message: "Invalid profile UUID", details: nil))
+            return
+        }
+        let proxyURL = arguments?["proxyUrl"] as? String ?? ""
         if stores[identifier] != nil && proxyURLs[identifier] == proxyURL {
             result(true)
             return
         }
         let store = stores[identifier] ?? WKWebsiteDataStore(forIdentifier: uuid)
-        let endpoint = nw_endpoint_create_host(host, String(port))
-        let proxy = nw_proxy_config_create_socksv5(endpoint)
-        store.__proxyConfigurations = [proxy]
+        if proxyURL.isEmpty {
+            store.__proxyConfigurations = []
+        } else {
+            guard let url = URL(string: proxyURL), url.scheme == "socks5",
+                  let host = url.host, !host.isEmpty,
+                  url.user == nil, url.password == nil,
+                  (1...65535).contains(url.port ?? 1080) else {
+                result(FlutterError(code: "INVALID_REQUEST", message: "Expected a SOCKS5 proxy URL without credentials", details: nil))
+                return
+            }
+            let endpoint = nw_endpoint_create_host(host, String(url.port ?? 1080))
+            store.__proxyConfigurations = [nw_proxy_config_create_socksv5(endpoint)]
+        }
         stores[identifier] = store
         proxyURLs[identifier] = proxyURL
         result(true)
     }
     static func remove(arguments: NSDictionary?, result: @escaping FlutterResult) {
-        guard let identifier = arguments?["gopeedProfileId"] as? String,
+        guard let identifier = arguments?["profileId"] as? String,
               let uuid = UUID(uuidString: identifier) else {
             result(FlutterError(code: "INVALID_REQUEST", message: "Invalid WebView profile identifier", details: nil))
             return

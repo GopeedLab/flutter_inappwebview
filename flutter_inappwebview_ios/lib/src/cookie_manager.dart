@@ -20,13 +20,13 @@ class IOSCookieManagerCreationParams
   const IOSCookieManagerCreationParams(
     // This parameter prevents breaking changes later.
     // ignore: avoid_unused_constructor_parameters
-    PlatformCookieManagerCreationParams params,
-  ) : super();
+    PlatformCookieManagerCreationParams params, {String? profileId}
+  ) : super(profileId: profileId);
 
   /// Creates a [IOSCookieManagerCreationParams] instance based on [PlatformCookieManagerCreationParams].
   factory IOSCookieManagerCreationParams.fromPlatformCookieManagerCreationParams(
       PlatformCookieManagerCreationParams params) {
-    return IOSCookieManagerCreationParams(params);
+    return IOSCookieManagerCreationParams(params, profileId: params.profileId);
   }
 }
 
@@ -45,6 +45,9 @@ class IOSCookieManager extends PlatformCookieManager with ChannelController {
     handler = handleMethod;
     initMethodCallHandler();
   }
+
+  @override
+  bool get supportsProfiles => true;
 
   static IOSCookieManager? _instance;
 
@@ -98,7 +101,9 @@ class IOSCookieManager extends PlatformCookieManager with ChannelController {
       return true;
     }
 
-    Map<String, dynamic> args = <String, dynamic>{};
+    Map<String, dynamic> args = <String, dynamic>{
+      if (params.profileId != null) 'profileId': params.profileId,
+    };
     args.putIfAbsent('url', () => url.toString());
     args.putIfAbsent('name', () => name);
     args.putIfAbsent('value', () => value);
@@ -181,7 +186,9 @@ class IOSCookieManager extends PlatformCookieManager with ChannelController {
 
     List<Cookie> cookies = [];
 
-    Map<String, dynamic> args = <String, dynamic>{};
+    Map<String, dynamic> args = <String, dynamic>{
+      if (params.profileId != null) 'profileId': params.profileId,
+    };
     args.putIfAbsent('url', () => url.toString());
     List<dynamic> cookieListMap =
         await channel?.invokeMethod<List>('getCookies', args) ?? [];
@@ -281,7 +288,9 @@ class IOSCookieManager extends PlatformCookieManager with ChannelController {
           .firstWhere((cookie) => cookie!.name == name, orElse: () => null);
     }
 
-    Map<String, dynamic> args = <String, dynamic>{};
+    Map<String, dynamic> args = <String, dynamic>{
+      if (params.profileId != null) 'profileId': params.profileId,
+    };
     args.putIfAbsent('url', () => url.toString());
     List<dynamic> cookies =
         await channel?.invokeMethod<List>('getCookies', args) ?? [];
@@ -330,7 +339,9 @@ class IOSCookieManager extends PlatformCookieManager with ChannelController {
       return true;
     }
 
-    Map<String, dynamic> args = <String, dynamic>{};
+    Map<String, dynamic> args = <String, dynamic>{
+      if (params.profileId != null) 'profileId': params.profileId,
+    };
     args.putIfAbsent('url', () => url.toString());
     args.putIfAbsent('name', () => name);
     args.putIfAbsent('domain', () => domain);
@@ -366,7 +377,9 @@ class IOSCookieManager extends PlatformCookieManager with ChannelController {
       return true;
     }
 
-    Map<String, dynamic> args = <String, dynamic>{};
+    Map<String, dynamic> args = <String, dynamic>{
+      if (params.profileId != null) 'profileId': params.profileId,
+    };
     args.putIfAbsent('url', () => url.toString());
     args.putIfAbsent('domain', () => domain);
     args.putIfAbsent('path', () => path);
@@ -375,7 +388,9 @@ class IOSCookieManager extends PlatformCookieManager with ChannelController {
 
   @override
   Future<bool> deleteAllCookies() async {
-    Map<String, dynamic> args = <String, dynamic>{};
+    Map<String, dynamic> args = <String, dynamic>{
+      if (params.profileId != null) 'profileId': params.profileId,
+    };
     return await channel?.invokeMethod<bool>('deleteAllCookies', args) ?? false;
   }
 
@@ -383,7 +398,9 @@ class IOSCookieManager extends PlatformCookieManager with ChannelController {
   Future<List<Cookie>> getAllCookies() async {
     List<Cookie> cookies = [];
 
-    Map<String, dynamic> args = <String, dynamic>{};
+    Map<String, dynamic> args = <String, dynamic>{
+      if (params.profileId != null) 'profileId': params.profileId,
+    };
     List<dynamic> cookieListMap =
         await channel?.invokeMethod<List>('getAllCookies', args) ?? [];
     cookieListMap = cookieListMap.cast<Map<dynamic, dynamic>>();

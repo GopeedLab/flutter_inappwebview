@@ -2,6 +2,7 @@ import 'package:flutter_inappwebview_platform_interface/flutter_inappwebview_pla
 
 import 'chrome_safari_browser/chrome_safari_browser.dart';
 import 'cookie_manager.dart';
+import 'webview_profile.dart';
 import 'http_auth_credentials_database.dart';
 import 'find_interaction/main.dart';
 import 'in_app_browser/in_app_browser.dart';
@@ -19,6 +20,10 @@ import 'webview_feature.dart' as wv;
 
 /// Implementation of [InAppWebViewPlatform] using the WebView API.
 class AndroidInAppWebViewPlatform extends InAppWebViewPlatform {
+  @override
+  AndroidWebViewProfile createPlatformWebViewProfile(String id) =>
+      AndroidWebViewProfile(id);
+
   /// Registers this class as the default instance of [InAppWebViewPlatform].
   static void registerWith() {
     InAppWebViewPlatform.instance = AndroidInAppWebViewPlatform();
@@ -370,7 +375,8 @@ class AndroidInAppWebViewPlatform extends InAppWebViewPlatform {
   /// Look at using [WebStorageManager] in `flutter_inappwebview` instead.
   @override
   AndroidWebStorageManager createPlatformWebStorageManager(
-      PlatformWebStorageManagerCreationParams params) {
+    PlatformWebStorageManagerCreationParams params,
+  ) {
     return AndroidWebStorageManager(params);
   }
 }

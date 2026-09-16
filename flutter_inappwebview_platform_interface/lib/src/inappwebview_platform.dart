@@ -7,6 +7,7 @@ import 'in_app_webview/platform_headless_in_app_webview.dart';
 import 'in_app_webview/platform_inappwebview_controller.dart';
 import 'in_app_webview/platform_inappwebview_widget.dart';
 import 'platform_cookie_manager.dart';
+import 'platform_webview_profile.dart';
 import 'platform_http_auth_credentials_database.dart';
 import 'platform_in_app_localhost_server.dart';
 import 'print_job/platform_print_job_controller.dart';
@@ -28,6 +29,11 @@ import 'webview_environment/platform_webview_environment.dart';
 
 /// Interface for a platform implementation of a WebView.
 abstract class InAppWebViewPlatform extends PlatformInterface {
+  /// Creates a persistent profile on a supported platform.
+  PlatformWebViewProfile createPlatformWebViewProfile(String id) =>
+      throw UnsupportedError(
+          'Persistent WebView profiles are not supported on this platform');
+
   /// Creates a new [InAppWebViewPlatform].
   InAppWebViewPlatform() : super(token: _token);
 

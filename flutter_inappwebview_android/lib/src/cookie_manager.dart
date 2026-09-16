@@ -17,13 +17,13 @@ class AndroidCookieManagerCreationParams
   const AndroidCookieManagerCreationParams(
     // This parameter prevents breaking changes later.
     // ignore: avoid_unused_constructor_parameters
-    PlatformCookieManagerCreationParams params,
-  ) : super();
+    PlatformCookieManagerCreationParams params, {String? profileId}
+  ) : super(profileId: profileId);
 
   /// Creates a [AndroidCookieManagerCreationParams] instance based on [PlatformCookieManagerCreationParams].
   factory AndroidCookieManagerCreationParams.fromPlatformCookieManagerCreationParams(
       PlatformCookieManagerCreationParams params) {
-    return AndroidCookieManagerCreationParams(params);
+    return AndroidCookieManagerCreationParams(params, profileId: params.profileId);
   }
 }
 
@@ -43,6 +43,9 @@ class AndroidCookieManager extends PlatformCookieManager
     handler = handleMethod;
     initMethodCallHandler();
   }
+
+  @override
+  bool get supportsProfiles => true;
 
   static AndroidCookieManager? _instance;
 
@@ -79,7 +82,9 @@ class AndroidCookieManager extends PlatformCookieManager
     assert(value.isNotEmpty);
     assert(path.isNotEmpty);
 
-    Map<String, dynamic> args = <String, dynamic>{};
+    Map<String, dynamic> args = <String, dynamic>{
+      if (params.profileId != null) 'profileId': params.profileId,
+    };
     args.putIfAbsent('url', () => url.toString());
     args.putIfAbsent('name', () => name);
     args.putIfAbsent('value', () => value);
@@ -104,7 +109,9 @@ class AndroidCookieManager extends PlatformCookieManager
 
     List<Cookie> cookies = [];
 
-    Map<String, dynamic> args = <String, dynamic>{};
+    Map<String, dynamic> args = <String, dynamic>{
+      if (params.profileId != null) 'profileId': params.profileId,
+    };
     args.putIfAbsent('url', () => url.toString());
     List<dynamic> cookieListMap =
         await channel?.invokeMethod<List>('getCookies', args) ?? [];
@@ -136,7 +143,9 @@ class AndroidCookieManager extends PlatformCookieManager
     assert(url.toString().isNotEmpty);
     assert(name.isNotEmpty);
 
-    Map<String, dynamic> args = <String, dynamic>{};
+    Map<String, dynamic> args = <String, dynamic>{
+      if (params.profileId != null) 'profileId': params.profileId,
+    };
     args.putIfAbsent('url', () => url.toString());
     List<dynamic> cookies =
         await channel?.invokeMethod<List>('getCookies', args) ?? [];
@@ -171,7 +180,9 @@ class AndroidCookieManager extends PlatformCookieManager
     assert(url.toString().isNotEmpty);
     assert(name.isNotEmpty);
 
-    Map<String, dynamic> args = <String, dynamic>{};
+    Map<String, dynamic> args = <String, dynamic>{
+      if (params.profileId != null) 'profileId': params.profileId,
+    };
     args.putIfAbsent('url', () => url.toString());
     args.putIfAbsent('name', () => name);
     args.putIfAbsent('domain', () => domain);
@@ -189,7 +200,9 @@ class AndroidCookieManager extends PlatformCookieManager
       PlatformInAppWebViewController? webViewController}) async {
     assert(url.toString().isNotEmpty);
 
-    Map<String, dynamic> args = <String, dynamic>{};
+    Map<String, dynamic> args = <String, dynamic>{
+      if (params.profileId != null) 'profileId': params.profileId,
+    };
     args.putIfAbsent('url', () => url.toString());
     args.putIfAbsent('domain', () => domain);
     args.putIfAbsent('path', () => path);
@@ -198,13 +211,17 @@ class AndroidCookieManager extends PlatformCookieManager
 
   @override
   Future<bool> deleteAllCookies() async {
-    Map<String, dynamic> args = <String, dynamic>{};
+    Map<String, dynamic> args = <String, dynamic>{
+      if (params.profileId != null) 'profileId': params.profileId,
+    };
     return await channel?.invokeMethod<bool>('deleteAllCookies', args) ?? false;
   }
 
   @override
   Future<bool> removeSessionCookies() async {
-    Map<String, dynamic> args = <String, dynamic>{};
+    Map<String, dynamic> args = <String, dynamic>{
+      if (params.profileId != null) 'profileId': params.profileId,
+    };
     return await channel?.invokeMethod<bool>('removeSessionCookies', args) ??
         false;
   }

@@ -14,8 +14,8 @@ import androidx.webkit.WebViewFeature;
 import io.flutter.plugin.common.MethodCall;
 import io.flutter.plugin.common.MethodChannel;
 
-// Internal host bridge: profile creation and proxy completion precede navigation.
-public final class GopeedProfiles {
+// Profile creation and proxy completion precede navigation.
+public final class WebViewProfiles {
   private static final java.util.Map<android.webkit.WebView, String> views = new java.util.IdentityHashMap<>();
 
   public static void viewCreated(android.webkit.WebView view, String id) { views.put(view, id); }
@@ -26,7 +26,7 @@ public final class GopeedProfiles {
 
   static void initialize(Context context) {
     if (preferences != null) return;
-    preferences = context.getSharedPreferences("gopeed_webview_profiles", Context.MODE_PRIVATE);
+    preferences = context.getSharedPreferences("flutter_inappwebview_profiles", Context.MODE_PRIVATE);
     if (!WebViewFeature.isFeatureSupported(WebViewFeature.MULTI_PROFILE)) return;
     for (String id : deletions()) {
       try {
@@ -55,7 +55,7 @@ public final class GopeedProfiles {
   }
 
   private static void waitForViews(MethodCall call, MethodChannel.Result result, int attempts) {
-    String id = call.argument("gopeedProfileId");
+    String id = call.argument("profileId");
     if (views.containsValue(id)) {
       if (attempts <= 0) {
         result.error("PROFILE_REMOVE_FAILED", "WebView pages have not finished closing", null);
@@ -75,7 +75,7 @@ public final class GopeedProfiles {
       result.error("UNAVAILABLE", "Android WebView profile removal is unavailable", null);
       return;
     }
-    String id = call.argument("gopeedProfileId");
+    String id = call.argument("profileId");
     try {
       java.util.UUID.fromString(id);
       setPending(id, true);
@@ -91,7 +91,7 @@ public final class GopeedProfiles {
         // remove the empty profile at the next process start.
       }
       if (!WebViewFeature.isFeatureSupported(WebViewFeature.DELETE_BROWSING_DATA)) {
-        result.error("PROFILE_REMOVE_FAILED", "Restart Gopeed to finish removing WebView profile data", null);
+        result.error("PROFILE_REMOVE_FAILED", "Restart the application to finish removing WebView profile data", null);
         return;
       }
       Profile profile = ProfileStore.getInstance().getProfile(id);
@@ -114,18 +114,25 @@ public final class GopeedProfiles {
   private static String pendingProxy;
   private static final java.util.List<MethodChannel.Result> pending = new java.util.ArrayList<>();
   static void prepare(MethodCall call, MethodChannel.Result result) {
-    if (!WebViewFeature.isFeatureSupported(WebViewFeature.MULTI_PROFILE) ||
-        !WebViewFeature.isFeatureSupported(WebViewFeature.PROXY_OVERRIDE)) {
-      result.error("UNAVAILABLE", "Android WebView does not support isolated profiles and proxy override", null);
+    if (!WebViewFeature.isFeatureSupported(WebViewFeature.MULTI_PROFILE)) {
+      result.error("UNAVAILABLE", "Android WebView does not support persistent profiles", null);
       return;
     }
-    String id = call.argument("gopeedProfileId");
-    String proxy = call.argument("proxyUrl");
+    String id = call.argument("profileId");
+    String requestedProxy = call.argument("proxyUrl");
+    String proxy = requestedProxy == null ? "" : requestedProxy;
     try {
       java.util.UUID.fromString(id);
-      Uri uri = Uri.parse(proxy);
-      if (!"http".equals(uri.getScheme()) || !"127.0.0.1".equals(uri.getHost()) || uri.getPort() <= 0)
-        throw new IllegalArgumentException("Invalid host proxy configuration");
+      if (!proxy.isEmpty()) {
+        Uri uri = Uri.parse(proxy);
+        if (!"http".equals(uri.getScheme()) || uri.getHost() == null || uri.getHost().isEmpty() ||
+            uri.getUserInfo() != null || uri.getPort() == 0 || uri.getPort() > 65535)
+          throw new IllegalArgumentException("Expected an HTTP proxy URL without credentials");
+      }
+      if (!WebViewFeature.isFeatureSupported(WebViewFeature.PROXY_OVERRIDE) && !proxy.isEmpty()) {
+        result.error("UNAVAILABLE", "Android WebView proxy override is unavailable", null);
+        return;
+      }
       if (deletions().contains(id)) {
         if (!cleared.contains(id)) throw new IllegalStateException("Profile removal requires restart");
         // Reinstallation may reuse the now-empty profile. Do not delete its
@@ -134,7 +141,11 @@ public final class GopeedProfiles {
         cleared.remove(id);
       }
       ProfileStore.getInstance().getOrCreateProfile(id);
-      if (proxy.equals(appliedProxy)) { result.success(true); return; }
+      if (proxy.equals(appliedProxy) || (proxy.isEmpty() && appliedProxy == null)) {
+        appliedProxy = proxy;
+        result.success(true);
+        return;
+      }
       if (pendingProxy != null) {
         if (proxy.equals(pendingProxy)) pending.add(result);
         else result.error("UNAVAILABLE", "A different WebView proxy is being configured", null);
@@ -142,14 +153,20 @@ public final class GopeedProfiles {
       }
       pendingProxy = proxy;
       pending.add(result);
-      ProxyConfig config = new ProxyConfig.Builder().addProxyRule(proxy).removeImplicitRules().build();
-      ProxyController.getInstance().setProxyOverride(config, task -> new android.os.Handler(android.os.Looper.getMainLooper()).post(task), () -> {
+      java.util.concurrent.Executor executor = task -> new android.os.Handler(android.os.Looper.getMainLooper()).post(task);
+      Runnable completedCallback = () -> {
         appliedProxy = proxy;
         pendingProxy = null;
         java.util.List<MethodChannel.Result> completed = new java.util.ArrayList<>(pending);
         pending.clear();
         for (MethodChannel.Result callback : completed) callback.success(true);
-      });
+      };
+      if (proxy.isEmpty()) {
+        ProxyController.getInstance().clearProxyOverride(executor, completedCallback);
+      } else {
+        ProxyConfig config = new ProxyConfig.Builder().addProxyRule(proxy).removeImplicitRules().build();
+        ProxyController.getInstance().setProxyOverride(config, executor, completedCallback);
+      }
     } catch (RuntimeException e) {
       if (pendingProxy != null && pending.contains(result)) {
         pendingProxy = null;

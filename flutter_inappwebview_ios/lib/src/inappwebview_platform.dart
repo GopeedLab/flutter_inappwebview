@@ -2,6 +2,7 @@ import 'package:flutter_inappwebview_platform_interface/flutter_inappwebview_pla
 
 import 'chrome_safari_browser/chrome_safari_browser.dart';
 import 'cookie_manager.dart';
+import 'webview_profile.dart';
 import 'http_auth_credentials_database.dart';
 import 'find_interaction/main.dart';
 import 'in_app_browser/in_app_browser.dart';
@@ -14,6 +15,10 @@ import 'web_authentication_session/main.dart';
 
 /// Implementation of [InAppWebViewPlatform] using the WebKit API.
 class IOSInAppWebViewPlatform extends InAppWebViewPlatform {
+  @override
+  IOSWebViewProfile createPlatformWebViewProfile(String id) =>
+      IOSWebViewProfile(id);
+
   /// Registers this class as the default instance of [InAppWebViewPlatform].
   static void registerWith() {
     InAppWebViewPlatform.instance = IOSInAppWebViewPlatform();
@@ -248,7 +253,8 @@ class IOSInAppWebViewPlatform extends InAppWebViewPlatform {
   /// Look at using [WebStorageManager] in `flutter_inappwebview` instead.
   @override
   IOSWebStorageManager createPlatformWebStorageManager(
-      PlatformWebStorageManagerCreationParams params) {
+    PlatformWebStorageManagerCreationParams params,
+  ) {
     return IOSWebStorageManager(params);
   }
 
@@ -258,7 +264,8 @@ class IOSInAppWebViewPlatform extends InAppWebViewPlatform {
   /// Look at using [WebAuthenticationSession] in `flutter_inappwebview` instead.
   @override
   IOSWebAuthenticationSession createPlatformWebAuthenticationSession(
-      PlatformWebAuthenticationSessionCreationParams params) {
+    PlatformWebAuthenticationSessionCreationParams params,
+  ) {
     return IOSWebAuthenticationSession(params);
   }
 

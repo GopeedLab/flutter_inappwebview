@@ -11,7 +11,7 @@ import WebKit
 @objcMembers
 public class InAppWebViewSettings: ISettings<InAppWebView> {
     
-    var gopeedProfileId = ""
+    var profileId = ""
     var useShouldOverrideUrlLoading = false
     var useOnLoadResource = false
     var useOnDownloadStart = false

@@ -37,7 +37,19 @@ class CookieManager {
   ///Gets the [CookieManager] shared instance.
   ///
   ///[webViewEnvironment] (Supported only on Windows) - Used to create the [CookieManager] using the specified environment.
-  static CookieManager instance({WebViewEnvironment? webViewEnvironment}) {
+  ///[profileId] selects a prepared persistent profile on Android, iOS, or macOS.
+  ///Use WebViewProfile.id; omit it to keep the default store. It cannot be
+  ///combined with [webViewEnvironment].
+  static CookieManager instance(
+      {WebViewEnvironment? webViewEnvironment, String? profileId}) {
+    if (profileId != null) {
+      if (webViewEnvironment != null) {
+        throw ArgumentError(
+            'profileId and webViewEnvironment cannot be combined');
+      }
+      return CookieManager.fromPlatformCreationParams(
+          PlatformCookieManagerCreationParams(profileId: profileId));
+    }
     if (webViewEnvironment == null) {
       if (_instance == null) {
         _instance = CookieManager();

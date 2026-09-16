@@ -259,7 +259,7 @@ public class InAppWebView: WKWebView, WKUIDelegate,
             if settings.incognito {
                 configuration.websiteDataStore = WKWebsiteDataStore.nonPersistent()
             } else if settings.cacheEnabled {
-                configuration.websiteDataStore = GopeedProfiles.store(settings.gopeedProfileId) ?? WKWebsiteDataStore.default()
+                configuration.websiteDataStore = WebViewProfiles.store(settings.profileId) ?? WKWebsiteDataStore.default()
             }
             if !settings.applicationNameForUserAgent.isEmpty {
                 if let applicationNameForUserAgent = configuration.applicationNameForUserAgent {
@@ -550,7 +550,7 @@ public class InAppWebView: WKWebView, WKUIDelegate,
         if (newSettingsMap["incognito"] != nil && settings?.incognito != newSettings.incognito && newSettings.incognito) {
             configuration.websiteDataStore = WKWebsiteDataStore.nonPersistent()
         } else if (newSettingsMap["cacheEnabled"] != nil && settings?.cacheEnabled != newSettings.cacheEnabled && newSettings.cacheEnabled) {
-            configuration.websiteDataStore = GopeedProfiles.store(settings?.gopeedProfileId ?? "") ?? WKWebsiteDataStore.default()
+            configuration.websiteDataStore = WebViewProfiles.store(settings?.profileId ?? "") ?? WKWebsiteDataStore.default()
         }
         
         if #available(macOS 10.13, *) {

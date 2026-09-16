@@ -1,3 +1,8 @@
+## Unreleased (profile feature)
+
+- Add public persistent-profile lifecycle, initialization settings, and scoped cookie APIs.
+- Support optional proxy configuration through the profile API; see `doc/webview_profiles.md` in the repository for platform limitations.
+
 ## 6.1.5
 
 - Updated dependencies to the latest versions for all platform implementations:
