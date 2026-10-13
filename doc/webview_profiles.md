@@ -65,7 +65,7 @@ flutter test test/webview_profile_test.dart
 ```
 
 Overrides in a dependency's pubspec_overrides.yaml are ignored by consuming apps.
-Apps using the Git fork must override all five changed packages to one commit:
+Apps using the Git fork must override all six changed packages to one commit:
 `flutter_inappwebview`, `flutter_inappwebview_platform_interface`,
 `flutter_inappwebview_android`, `flutter_inappwebview_ios`, and
-`flutter_inappwebview_macos`.
+`flutter_inappwebview_macos`, and `flutter_inappwebview_windows` (Windows build fix).
