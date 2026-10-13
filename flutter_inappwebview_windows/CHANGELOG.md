@@ -1,3 +1,8 @@
+## Unreleased (Windows build compatibility)
+
+- Build plugin and native test sources with C++20 so C++/WinRT uses standard coroutines on Visual Studio 2026 / MSVC 14.51.
+- Fix dependent template assertions, in-place string helpers, and redundant member qualifications rejected by standard-conforming compilation.
+
 ## 0.6.0
 
 - Updated code to support multiple flutter windows

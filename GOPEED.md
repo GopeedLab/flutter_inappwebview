@@ -20,6 +20,10 @@ operations, and profile removal. macOS also resigns input focus before disposal
 so AppKit cannot retain the store through the responder chain. Android persists
 pending shell deletions until the next process start.
 
+Windows plugin and native test targets use C++20 so C++/WinRT uses standard
+coroutines on Visual Studio 2026 / MSVC 14.51. This build fix does not add the
+profile API to Windows; Gopeed's Windows provider manages profiles in Go.
+
 ## Updating upstream
 
 1. Fetch upstream and tags, then merge a compatible release into the maintenance
@@ -29,5 +33,5 @@ pending shell deletions until the next process start.
 3. Run the facade unit tests in the API guide, existing Android/iOS build jobs,
    and Gopeed's shared provider tests against a normal visible macOS app. Focus
    cleanup requires a visible app; hidden-only testing is insufficient.
-4. Pin all five changed packages in Gopeed to the same verified immutable Git
+4. Pin all six changed packages in Gopeed to the same verified immutable Git
    commit, run `flutter pub get`, and commit its lockfile.
